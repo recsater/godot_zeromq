@@ -10,9 +10,9 @@
 
 namespace godot {
 
-class ZeroMQ : public Node
+class ZMQ : public Node
 {
-    GDCLASS(ZeroMQ, Node);
+    GDCLASS(ZMQ, Node);
 
 protected:
 	static void _bind_methods();
@@ -31,11 +31,11 @@ public:
     int _inPort = 9999;
     int _outPort = 8888;
 
-    ZeroMQ();
-    ~ZeroMQ();
+    ZMQ();
+    ~ZMQ();
 
     // void _init(int inPort, int outPort, String outIP);
-    static ZeroMQ* new_from(int inPort, int outPort, String outIP);
+    static ZMQ* new_from(int inPort, int outPort, String outIP);
     void init(int inPort, int outPort, String outIP);
     // void set_max_pending_connections(int p_max_pending_connections);
     void _ready() override;
