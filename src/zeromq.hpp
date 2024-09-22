@@ -2,6 +2,8 @@
 
 #include <godot_cpp/classes/node.hpp>
 #include <godot_cpp/classes/udp_server.hpp>
+#include <godot_cpp/classes/thread.hpp>
+#include <godot_cpp/classes/mutex.hpp>
 // #include <godot_cpp/core/class_db.hpp>
 
 namespace godot {
@@ -16,8 +18,10 @@ protected:
 public:
 
     // std::unique_ptr<UDPServer> server;
-    UDPServer* server;
+    // UDPServer* server;
     Dictionary messageHandlers;
+    Thread* thread;
+    Mutex* mutex;
     // std::map<String, Vector<Callable>> messageHandlers;
     String _outIP = "127.0.0.1";
     int _inPort = 9999;

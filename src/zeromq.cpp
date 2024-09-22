@@ -45,8 +45,8 @@ void ZeroMQ::init(int inPort, int outPort, String outIP) {
     _outPort = outPort;
     _outIP = outIP;
 
-    server = memnew(UDPServer);
-    server->listen(inPort);
+    // server = memnew(UDPServer);
+    // server->listen(inPort);
     UtilityFunctions::print("ZeroMQ UDP server listening on port: " + String::num_int64(inPort));
 }
 
@@ -73,61 +73,7 @@ void ZeroMQ::_process(double delta) {
 }
 
 void ZeroMQ::_process_packet(PackedByteArray packet) {
-    // UtilityFunctions::print("[debug] ZeroMQ packet received: " + packet.get_string_from_utf8());
-
-    std::vector<std::shared_ptr<ZeroMQMessage>> all_messages;
-
-    std::shared_ptr<ZeroMQMessage> msg = std::make_shared<ZeroMQMessage>();
-    TypedArray<PackedByteArray> rest_messages = msg->_parseMessage(packet);
-    all_messages.push_back(msg);
-
-    for (int i = 0; i < rest_messages.size(); i++) {
-        std::shared_ptr<ZeroMQMessage> msg = std::make_shared<ZeroMQMessage>();
-        msg->_parseMessage(rest_messages[i]);
-        all_messages.push_back(msg);
-    }
-
-    for (int i = 0; i < all_messages.size(); i++) {
-        std::shared_ptr<ZeroMQMessage> msg = all_messages[i];
-
-        // UtilityFunctions::print("ZeroMQ message received: " + msg->address());
-        // String typeTags = "";
-        // for (int j = 0; j < msg->_myTypetag.size(); j++) {
-        //     typeTags += String::chr(msg->_myTypetag[j]);
-        // }
-        // UtilityFunctions::print("ZeroMQ message type tags: " + typeTags);
-        // UtilityFunctions::print("ZeroMQ message content: " + msg->toString());
-        
-        if (!msg->isValid()) {
-            // UtilityFunctions::print("[debug] ZeroMQ message is invalid");
-            continue;
-        }
-        if (messageHandlers.has("*")) {
-            Array empty = Array();
-            Array arr = messageHandlers.get("*", empty);
-
-            for (int i = 0; i < arr.size(); i++) {
-                // UtilityFunctions::print("Calling handler in *");
-                Callable handler = arr[i];
-                // handler.call(msg.get());
-                // handler.call("call", msg.get());
-                // handler.call();
-                handler.call(msg->address(), msg->getValues());
-            }
-        }
-        if (messageHandlers.has(msg->address())) {
-            Array arr = messageHandlers[msg->address()];
-
-            for (int i = 0; i < arr.size(); i++) {
-                // UtilityFunctions::print("Calling handler (hash " + String::num(handler.hash()) + ") in address: " + msg->address());
-                Callable handler = arr[i];
-                // handler.call(msg.get());
-                // handler.call("call", msg.get());
-                // handler.call();
-                handler.call(msg->address(), msg->getValues());
-            }
-        }
-    }
+    UtilityFunctions::print("[debug] ZeroMQ packet received, but unimplemented");
 }
 
 void ZeroMQ::sendBuffer(PackedByteArray buffer) {
@@ -140,19 +86,12 @@ void ZeroMQ::sendBuffer(PackedByteArray buffer) {
 }
 
 void ZeroMQ::send(String address, Array arguments) {
-    // UtilityFunctions::print("ZeroMQ::send");
-
-    ZeroMQMessage msg;
-    msg.init(address);
-    for (int i = 0; i < arguments.size(); i++) {
-        msg.add(arguments[i]);
-    }
-    sendBuffer(msg.toPackedByteArray());
+    UtilityFunctions::print("ZeroMQ::send, but unimplemented");
 }
 
 void ZeroMQ::stop() {
     server->stop();
-    UtilityFunctions::print("ZeroMQ UDP server stopped");
+    UtilityFunctions::print("ZeroMQ receiver stopped");
 }
 
 void ZeroMQ::onMessage(String address, Callable callback) {

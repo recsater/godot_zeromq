@@ -20,9 +20,10 @@
 log.txt
 *.log
 
-project/addons/osc/bin/*
+project/addons/zeromq/bin/*
 *.dll
 *.exp
 *.lib
+*.framework
 
 *.tmp

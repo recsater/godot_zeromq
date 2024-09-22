@@ -24,10 +24,10 @@ if os.path.exists(homebrew_path):
     # Homebrewのpkg-configパスを環境変数に追加
     if 'PKG_CONFIG_PATH' in os.environ:
         env['ENV']['PKG_CONFIG_PATH'] = f"{homebrew_path}/lib/pkgconfig:{os.environ.get('PKG_CONFIG_PATH', '')}"
-else:
-    print("Homebrew not detected, using default paths")
-    env.Append(CPPPATH=['/usr/local/include'])
-    env.Append(LIBPATH=['/usr/local/lib'])
+# else:
+#     print("Homebrew not detected, using default paths")
+    # env.Append(CPPPATH=['/usr/local/include'])
+env.Append(LIBPATH=['/usr/local/lib'])
 
 env.Append(LIBS=['libzmq'])
 

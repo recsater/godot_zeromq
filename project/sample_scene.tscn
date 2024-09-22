@@ -6,6 +6,3 @@
 
 [node name="ZMQReceiver" type="Node" parent="."]
 script = ExtResource("1_ohc3t")
-osc_in_port = null
-osc_out_port = null
-host_ip = null
