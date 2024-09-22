@@ -13,7 +13,7 @@ void ZeroMQ::_bind_methods() {
     // ClassDB::bind_static_method("ZeroMQ", D_METHOD("create", "inPort", "outPort", "outIP"), &ZeroMQ::create);
     ClassDB::bind_static_method("ZeroMQ", D_METHOD("new_from", "inPort", "outPort", "outIP"), &ZeroMQ::new_from);
     ClassDB::bind_method(D_METHOD("init", "inPort", "outPort", "outIP"), &ZeroMQ::init);
-    ClassDB::bind_method(D_METHOD("set_max_pending_connections", "p_max_pending_connections"), &ZeroMQ::set_max_pending_connections);
+    // ClassDB::bind_method(D_METHOD("set_max_pending_connections", "p_max_pending_connections"), &ZeroMQ::set_max_pending_connections);
     ClassDB::bind_method(D_METHOD("sendBuffer", "buffer"), &ZeroMQ::sendBuffer);
     ClassDB::bind_method(D_METHOD("send", "address", "arguments"), &ZeroMQ::send);
     ClassDB::bind_method(D_METHOD("stop"), &ZeroMQ::stop);
@@ -50,26 +50,26 @@ void ZeroMQ::init(int inPort, int outPort, String outIP) {
     UtilityFunctions::print("ZeroMQ UDP server listening on port: " + String::num_int64(inPort));
 }
 
-void ZeroMQ::set_max_pending_connections(int p_max_pending_connections) {
-    // UtilityFunctions::print("ZeroMQ::set_max_pending_connections");
+// void ZeroMQ::set_max_pending_connections(int p_max_pending_connections) {
+//     // UtilityFunctions::print("ZeroMQ::set_max_pending_connections");
 
-    server->set_max_pending_connections(p_max_pending_connections);
-}
+//     server->set_max_pending_connections(p_max_pending_connections);
+// }
 
 void ZeroMQ::_ready() {
     // UtilityFunctions::print("ZeroMQ::_ready()");
 }
 
 void ZeroMQ::_process(double delta) {
-    server->poll(); // Important!
-    if (server->is_connection_available()) {
-        Ref<PacketPeerUDP> peer = server->take_connection();
+    // server->poll(); // Important!
+    // if (server->is_connection_available()) {
+    //     Ref<PacketPeerUDP> peer = server->take_connection();
 
-        while(peer->get_available_packet_count() > 0) {
-            PackedByteArray packet = peer->get_packet();
-            _process_packet(packet);
-        }
-    }
+    //     while(peer->get_available_packet_count() > 0) {
+    //         PackedByteArray packet = peer->get_packet();
+    //         _process_packet(packet);
+    //     }
+    // }
 }
 
 void ZeroMQ::_process_packet(PackedByteArray packet) {
@@ -90,7 +90,7 @@ void ZeroMQ::send(String address, Array arguments) {
 }
 
 void ZeroMQ::stop() {
-    server->stop();
+    // server->stop();
     UtilityFunctions::print("ZeroMQ receiver stopped");
 }
 

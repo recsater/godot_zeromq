@@ -1,5 +1,7 @@
 #pragma once
 
+#include "zmq.hpp"
+
 #include <godot_cpp/classes/node.hpp>
 #include <godot_cpp/classes/udp_server.hpp>
 #include <godot_cpp/classes/thread.hpp>
@@ -22,6 +24,8 @@ public:
     Dictionary messageHandlers;
     Thread* thread;
     Mutex* mutex;
+    zmq::context_t context;
+    zmq::socket_t socket;
     // std::map<String, Vector<Callable>> messageHandlers;
     String _outIP = "127.0.0.1";
     int _inPort = 9999;
@@ -33,7 +37,7 @@ public:
     // void _init(int inPort, int outPort, String outIP);
     static ZeroMQ* new_from(int inPort, int outPort, String outIP);
     void init(int inPort, int outPort, String outIP);
-    void set_max_pending_connections(int p_max_pending_connections);
+    // void set_max_pending_connections(int p_max_pending_connections);
     void _ready() override;
     void _process(double delta) override;
     void _process_packet(PackedByteArray packet);
