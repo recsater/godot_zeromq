@@ -1,24 +1,22 @@
 class_name ZeroMQReceiver
 extends Node
 
-@export var osc_in_port: int = 1234
-@export var osc_out_port: int = 12349
-@export var host_ip: String = "127.0.0.1"
-@onready var osc:ZMQ = ZMQ.new_from(osc_in_port, osc_out_port, host_ip)
+@export var zmq_in_address:String = "tcp://*:5555"
+@export var zmq_out_address:String = "tcp://localhost:5556"
+@export var zmq_in_socket_type:ZMQ.SocketType = ZMQ.SocketType.REP
+@export var zmq_out_socket_type:ZMQ.SocketType = ZMQ.SocketType.REQ
+@onready var zmq_receiver:ZMQReceiver = ZMQReceiver.new_from(zmq_in_address, zmq_in_socket_type)
 
 # Called when the node enters the scene tree for the first time.
 func _ready():
 	# osc.init(osc_in_port, osc_out_port, host_ip) # inPort, outPort, outIP
 
-	add_child(osc)
+	add_child(zmq_receiver)
 
 	# Message input Handler 
 	# osc.onMessage("/test", func(msg:OSCMessage):
-	osc.onMessage("/test", func(addr: String, args: Array):
-		print("[ZMQ] /test")
-		# print(msg.toString())
-		print("Address: ", addr)
-		print("Args: ", args)
+	zmq_receiver.onMessage(func(args: Array):
+		print("[ZMQ] Args: ", args)
 
 		# match msg.getValues() :
 		# 	[var x, var y] when x is float and y is float:
@@ -31,20 +29,12 @@ func _ready():
 		# 			mover.osc_move_message_received.emit(x, y)
 	)
 
-	# osc.onMessage("/hello", func(msg:OSCMessage):
-	osc.onMessage("/hello", func(addr: String, args: Array):
-		print("[ZMQ] /hello")
-		# print(msg.toString())
-		print("Address: ", addr)
-		print("Args: ", args)
-	)
-
 	# Message output
-	osc.send("/address", [123])
+	# osc.send("/address", [123])
 
 func _exit_tree():
-	osc.stop()
-	remove_child(osc)
+	zmq_receiver.stop()
+	remove_child(zmq_receiver)
 
 
 # Called every frame. 'delta' is the elapsed time since the previous frame.

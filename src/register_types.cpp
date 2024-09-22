@@ -7,7 +7,9 @@
 #include <godot_cpp/godot.hpp>
 #include <godot_cpp/variant/utility_functions.hpp>
 
-#include "zeromq.hpp"
+// #include "zeromq.hpp"
+#include "zmq_receiver.hpp"
+#include "zmq_sender.hpp"
 
 using namespace godot;
 
@@ -15,7 +17,9 @@ void gdextension_initialize(ModuleInitializationLevel p_level)
 {
 	if (p_level == MODULE_INITIALIZATION_LEVEL_SCENE)
 	{
-		ClassDB::register_class<ZMQ>();
+		ClassDB::register_class<ZMQReceiver>();
+		ClassDB::register_class<ZMQSender>();
+		// ClassDB::register_class<ZMQ>();
 	}
 }
 
