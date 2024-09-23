@@ -31,6 +31,17 @@ if os.path.exists(homebrew_path):
 if os.path.exists('/usr/local/lib'):
     env.Append(LIBPATH=['/usr/local/lib'])
 
+# Linuxbrewのパスを確認
+linuxbrew_path = '/home/linuxbrew/.linuxbrew'
+if os.path.exists(linuxbrew_path):
+    print(f"Linuxbrew detected at {linuxbrew_path}")
+    env.Append(CPPPATH=[f'{linuxbrew_path}/include'])
+    env.Append(LIBPATH=[f'{linuxbrew_path}/lib'])
+
+    # Linuxbrewのpkg-configパスを環境変数に追加
+    if 'PKG_CONFIG_PATH' in os.environ:
+        env['ENV']['PKG_CONFIG_PATH'] = f"{linuxbrew_path}/lib/pkgconfig:{os.environ.get('PKG_CONFIG_PATH', '')}"
+
 # VCPKGのパスを確認
 vcpkg_path = 'C:/vcpkg'
 if os.path.exists(vcpkg_path):
