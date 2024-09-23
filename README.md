@@ -87,10 +87,6 @@ enum ConnectionMode {
 - SUB/PUB, PUSH/PULL, REQ/REP (tested)
 - untested but enabled: DEALER/ROUTER, PAIR/PAIR, XPUB/XSUB, STREAM
 
-## Installation
-
-TODO: Add installation instructions
-
 ## Example Project
 
 see [`project/`](project) directory
