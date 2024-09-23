@@ -2,6 +2,10 @@
 
 ZeroMQ addon for Godot 4.2.2 - 4.3
 
+## Install
+
+use [godot_zeromq_bin](https://github.com/funatsufumiya/godot_zeromq_bin). see [instruction](https://github.com/funatsufumiya/godot_zeromq_bin/README.md)
+
 ## Usage
 
 ```gdscript
