@@ -23,6 +23,7 @@ func _ready():
     while true:
         await get_tree().create_timer(1.0).timeout
         print("[ZMQ Sender] Sending: ", "Hello World")
+        zmq_sender.sendString("Hello World")
 
 func _exit_tree():
     zmq_receiver.stop()
