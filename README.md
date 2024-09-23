@@ -47,11 +47,11 @@ more example, see [GDScript of demo project](https://github.com/funatsufumiya/go
 ### ZMQSender
 
 - `new_from(address: String, socket_type: int, connection_mode: int, socket_filter: String, auto_receive_on_sender: bool) -> ZMQSender`
-- `onMessageString(callback: Callable[[String], void])` (ONLY enabled to use when auto_receive_on_sender is true, or `beginReceiveRequest()` called)
-- `onMessageBytes(callback: Callable[[PackedByteArray], void])` (ONLY enabled to use when auto_receive_on_sender is true, or `beginReceiveRequest()` called)
+- `onMessageString(callback: Callable[[String], void])` (***ONLY enabled to use when auto_receive_on_sender is true, or `beginReceiveRequest()` called***)
+- `onMessageBytes(callback: Callable[[PackedByteArray], void])` (***ONLY enabled to use when auto_receive_on_sender is true, or `beginReceiveRequest()` called***)
 - `sendString(message: String) -> void`
 - `sendBytes(message: PackedByteArray) -> void`
-- `beginReceiveRequest() -> void` (ONLY enabled to use when auto_receive_on_sender is false)
+- `beginReceiveRequest() -> void` (***ONLY enabled to use when auto_receive_on_sender is false***)
 - `stop() -> void`
 
 ### NOTES of ZMQReceiver and ZMQSender
