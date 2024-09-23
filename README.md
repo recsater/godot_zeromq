@@ -57,7 +57,7 @@ TODO: Add installation instructions
 
 ## Example Project
 
-see `project/` directory
+see [`project/`](project) directory
 
 ## Build and Run
 
