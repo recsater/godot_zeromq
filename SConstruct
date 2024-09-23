@@ -53,7 +53,7 @@ if os.path.exists(vcpkg_path):
     if 'PKG_CONFIG_PATH' in os.environ:
         env['ENV']['PKG_CONFIG_PATH'] = f"{vcpkg_path}/installed/x64-windows/share/pkgconfig:{os.environ.get('PKG_CONFIG_PATH', '')}"
 
-vcpkg_linux_path = '~/vcpkg'
+vcpkg_linux_path = os.path.expanduser('~/vcpkg')
 
 if os.path.exists(vcpkg_linux_path):
     print(f"VCPKG detected at {vcpkg_linux_path}")
