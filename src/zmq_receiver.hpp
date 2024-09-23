@@ -6,6 +6,8 @@
 #include <godot_cpp/classes/thread.hpp>
 #include <godot_cpp/classes/mutex.hpp>
 
+#include <memory>
+
 namespace godot {
 
 class ZMQReceiver : public Node
@@ -14,15 +16,16 @@ class ZMQReceiver : public Node
 
 protected:
     static void _bind_methods();
+    static String socket_type_to_string(int socketType);
 
 public:
-    
-        Callable messageHandler;
         Thread* thread;
         Mutex* mutex;
+        Callable messageHandler;
         zmq::context_t context;
         zmq::socket_t socket;
-        String _in_zmq_addr = "tcp://*:5555";
+        String _in_zmq_addr;
+        int _in_socket_type;
 
         bool _isRunning = true;
     
