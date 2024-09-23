@@ -37,9 +37,6 @@ func _exit_tree():
 - `sendBytes(message: PackedByteArray) -> void`
 - `stop() -> void`
 
-NOTE 1: socket_filter is only used when socket_type is SUB
-NOTE 2: onMessageString and onMessageBytes are exclusive, you can only use one of them
-
 ### ZMQSender
 
 - `new_from(address: String, socket_type: int, connection_mode: int, socket_filter: String, auto_receive_on_sender: bool) -> ZMQSender`
@@ -50,8 +47,38 @@ NOTE 2: onMessageString and onMessageBytes are exclusive, you can only use one o
 - `beginReceiveRequest() -> void` (only enabled to use when auto_receive_on_sender is false)
 - `stop() -> void`
 
-NOTE 1: socket_filter is only used when socket_type is SUB
-NOTE 2: onMessageString and onMessageBytes are exclusive, you can only use one of them
+### NOTES of ZMQReceiver and ZMQSender
+
+- `socket_filter` is only used when `socket_type` is `SUB`
+- `onMessageString` and `onMessageBytes` are exclusive, you can only use one of them
+
+### ZMQ
+
+```gdscript
+enum SocketType {
+    PUB = 1,
+    SUB = 2,
+    REQ = 3,
+    REP = 4,
+    DEALER = 5,
+    ROUTER = 6,
+    PULL = 7,
+    PUSH = 8,
+    XPUB = 9,
+    XSUB = 10,
+    STREAM = 11
+}
+
+enum ConnectionMode {
+    BIND = 1,
+    CONNECT = 2
+}
+```
+
+## Features
+
+- SUB/PUB, PUSH/PULL, REQ/REP (tested)
+- untested but enabled: DEALER/ROUTER, PAIR/PAIR, XPUB/XSUB, STREAM
 
 ## Installation
 
