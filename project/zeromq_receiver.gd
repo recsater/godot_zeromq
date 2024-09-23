@@ -10,8 +10,8 @@ enum TestMode {
 # @export var zmq_test_mode:TestMode = TestMode.REQ_REP
 @export var zmq_test_mode:TestMode = TestMode.PUSH_PULL
 
-@onready var zmq_sender:ZMQSender = create_zmq_sender()
-@onready var zmq_receiver:ZMQReceiver = create_zmq_receiver()
+@onready var zmq_sender:ZMQSender = null
+@onready var zmq_receiver:ZMQReceiver = null
 
 @onready var counter:int = 0
 
@@ -83,9 +83,32 @@ func get_zmq_receive_on_sender():
 			return true
 
 # Called when the node enters the scene tree for the first time.
+
+func get_zmq_test_mode_string():
+	match zmq_test_mode:
+		TestMode.PUSH_PULL:
+			return "PUSH_PULL"
+		TestMode.PUB_SUB:
+			return "PUB_SUB"
+		TestMode.REQ_REP:
+			return "REQ_REP"
+
 func _ready():
+	for argument in OS.get_cmdline_args():
+		if argument == "--push_pull" || argument == "--push-pull":
+			zmq_test_mode = TestMode.PUSH_PULL
+		elif argument == "--pub_sub" || argument == "--pub-sub":
+			zmq_test_mode = TestMode.PUB_SUB
+		elif argument == "--req_rep" || argument == "--req-rep":
+			zmq_test_mode = TestMode.REQ_REP
+
+	zmq_receiver = create_zmq_receiver()
+	zmq_sender = create_zmq_sender()
+
 	add_child(zmq_receiver)
-	# add_child(zmq_sender)
+	add_child(zmq_sender)
+
+	print("====== ZMQ Test Mode: ", get_zmq_test_mode_string(), " ======")
 
 	# Message input Handler 
 	zmq_receiver.onMessageString(func(str: String):
@@ -114,6 +137,7 @@ func _ready():
 		while true:
 			counter += 1
 			await get_tree().create_timer(1.0).timeout
+			print("[ZMQ Sender] Sending: ", "Hello World " + str(counter))
 			zmq_sender.sendString("Hello World " + str(counter))
 
 func _exit_tree():
