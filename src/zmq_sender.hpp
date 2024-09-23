@@ -3,6 +3,10 @@
 #include "zmq.hpp"
 
 #include <godot_cpp/classes/node.hpp>
+#include <godot_cpp/classes/thread.hpp>
+#include <godot_cpp/classes/mutex.hpp>
+
+#include <memory>
 
 namespace godot {
 
@@ -12,24 +16,44 @@ class ZMQSender : public Node
 
 protected:
     static void _bind_methods();
+    void beginReceiveThread();
 
 public:
-    
-        zmq::context_t context;
-        zmq::socket_t socket;
-        String _out_zmq_addr = "tcp://localhost:5555";
-    
-        ZMQSender();
-        ~ZMQSender();
-    
-        static ZMQSender* new_from(String outAddr, int socketType);
-        void init(String outAddr, int socketType);
-        void _ready() override;
-        void _process(double delta) override;
-    
-        void sendBuffer(PackedByteArray buffer);
-        void send(String address, Array arguments);
-        void stop();
-};
+    static String socket_type_to_string(int socketType);
+    static String connection_mode_to_string(int connectionMode);
 
+    Thread* thread;
+    Mutex* mutex;
+    bool receive_with_bytes = false;
+    Callable stringMessageHandler;
+    Callable bytesMessageHandler;
+    zmq::context_t context;
+    zmq::socket_t socket;
+    String addr;
+    int socket_type;
+    int connection_mode;
+    String socket_filter;
+    bool auto_start_receive_thread_after_send = false;
+    bool need_to_start_receiving = false;
+
+    bool isThreadRunning = false;
+
+    ZMQSender();
+    ~ZMQSender();
+
+    static ZMQSender* new_from(String inAddr, int socketType, int connectionMode, String socketFilter, bool autoStartReceiveThreadAfterSend);
+    void init(String inAddr, int socketType, int connectionMode, String socketFilter, bool autoStartReceiveThreadAfterSend);
+    void _ready() override;
+    void _process(double delta) override;
+    void _thread_func();
+
+    void stop();
+    void sendString(String message);
+    void sendBytes(PackedByteArray message);
+    void onMessageString(Callable callback);
+    void onMessageBytes(Callable callback);
+
+    void beginReceiveRequest();
+};
+    
 }

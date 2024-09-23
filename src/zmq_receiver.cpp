@@ -6,10 +6,15 @@
 using namespace godot;
 
 void ZMQReceiver::_bind_methods() {
-    ClassDB::bind_static_method("ZMQReceiver", D_METHOD("new_from", "inAddr", "socketType"), &ZMQReceiver::new_from);
-    ClassDB::bind_method(D_METHOD("init", "inAddr", "socketType"), &ZMQReceiver::init);
+    ClassDB::bind_static_method("ZMQReceiver", D_METHOD("new_from", "address", "socketType", "connectionMode", "socketFilter"), &ZMQReceiver::new_from);
+    ClassDB::bind_static_method("ZMQReceiver", D_METHOD("socket_type_to_string", "socketType"), &ZMQReceiver::socket_type_to_string);
+    ClassDB::bind_static_method("ZMQReceiver", D_METHOD("connection_mode_to_string", "connectionMode"), &ZMQReceiver::connection_mode_to_string);
+    ClassDB::bind_method(D_METHOD("init", "address", "socketType", "connectionMode", "socketFilter"), &ZMQReceiver::init);
     ClassDB::bind_method(D_METHOD("stop"), &ZMQReceiver::stop);
-    ClassDB::bind_method(D_METHOD("onMessage", "callback"), &ZMQReceiver::onMessage);
+    ClassDB::bind_method(D_METHOD("onMessageString", "callback"), &ZMQReceiver::onMessageString);
+    ClassDB::bind_method(D_METHOD("onMessageBytes", "callback"), &ZMQReceiver::onMessageBytes);
+    ClassDB::bind_method(D_METHOD("sendString", "message"), &ZMQReceiver::sendString);
+    ClassDB::bind_method(D_METHOD("sendBytes", "message"), &ZMQReceiver::sendBytes);
     ClassDB::bind_method(D_METHOD("_thread_func"), &ZMQReceiver::_thread_func);
 }
 
@@ -60,6 +65,26 @@ String ZMQReceiver::socket_type_to_string(int socketType) {
     }
 }
 
+String ZMQReceiver::connection_mode_to_string(int connectionMode) {
+    // UtilityFunctions::print("ZMQReceiver::connection_mode_to_string");
+
+    // enum ConnectionMode {
+    //     BIND = 1,
+    //     CONNECT = 2
+    // }
+
+    switch (connectionMode) {
+        case 1: // BIND
+            return "BIND";
+        case 2: // CONNECT
+            return "CONNECT";
+        default:
+            UtilityFunctions::push_error("ZMQReceiver::connection_mode_to_string() unknown connection mode: " + String::num_int64(connectionMode));
+            assert(false);
+            return "UNKNOWN";
+    }
+}
+
 ZMQReceiver::ZMQReceiver()
 {
     // UtilityFunctions::print("ZMQReceiver::constructor");
@@ -70,55 +95,48 @@ ZMQReceiver::~ZMQReceiver()
     // UtilityFunctions::print("ZMQReceiver::destructor");
 }
 
-ZMQReceiver* ZMQReceiver::new_from(String inAddr, int socketType) {
+ZMQReceiver* ZMQReceiver::new_from(String address, int socketType, int connectionMode, String socketFilter) {
     // UtilityFunctions::print("ZMQReceiver::new_from");
 
     ZMQReceiver* zmq_receiver = memnew(ZMQReceiver);
-    zmq_receiver->init(inAddr, socketType);
+    zmq_receiver->init(address, socketType, connectionMode, socketFilter);
 
     return zmq_receiver;
 }
 
-void ZMQReceiver::init(String inAddr, int socketType) {
+void ZMQReceiver::init(String address, int socketType, int connectionMode, String socketFilter) {
     // UtilityFunctions::print("ZMQReceiver::init");
-    // UtilityFunctions::print("ZMQReceiver::init inAddr: " + inAddr + " socketType: " + String::num_int64(socketType));
-    _in_zmq_addr = inAddr;
-    _in_socket_type = socketType;
+    // UtilityFunctions::print("ZMQReceiver::init address: " + address + " socketType: " + String::num_int64(socketType));
+
+    addr = address;
+    socket_type = socketType;
+    connection_mode = connectionMode;
+    socket_filter = socketFilter;
 
     context = zmq::context_t(1);
     socket = zmq::socket_t(context, socketType);
 
-    std::string addr = inAddr.utf8().get_data();
+    std::string addr = address.utf8().get_data();
 
-    // choose bind or connect
-    // With Bind, you allow peers to connect to you, thus you don’t know how many peers there will be in the future and you cannot create the queues in advance. Instead, queues are created as individual peers connect to the bound socket.
-    // With Connect, ZeroMQ knows that there’s going to be at least a single peer and thus it can create a single queue immediately. This applies to all socket types except ROUTER, where queues are only created after the peer we connect to has acknowledge our connection.
-    
-    //     ZMQ bind versus connect
-    // In brief, you should use bind for:
-
-    // stable things; use connect for volatile things
-    // when there is on; use connect when the number is unknown
-    // when listening; use connect when broadcasting
-    // long-lived process should bind; short-lived should connect
-    // bind for incoming; connect for outgoing
-    // bound sockets start muted; connected sockets start ready [except router sockets]
-    
-    if (socketType == 2 /* SUB */
-        || socketType == 4 /* REP */
-        || socketType == 6 /* ROUTER */
-        || socketType == 8 /* PUSH */
-        || socketType == 10 /* XSUB */) {
+    if (connectionMode == 1 /* BIND */ ) {
+        socket.bind(addr);
+    } else if (connectionMode == 2 /* CONNECT */) {
         socket.connect(addr);
     } else {
-        socket.bind(addr);
+        UtilityFunctions::push_error("ZMQReceiver::init unknown connection mode: " + String::num_int64(connectionMode));
+        assert(false);
     }
 
-    // UtilityFunctions::print("ZMQReceiver::init socket connected to: " + inAddr);
+    if (socketType == 2 /* SUB */) {
+        socket.setsockopt(ZMQ_SUBSCRIBE, socketFilter.utf8().get_data(), socketFilter.length());
+    }
+
+    // UtilityFunctions::print("ZMQReceiver::init socket connected to: " + address);
 
     thread = memnew(Thread);
     mutex = memnew(Mutex);
 
+    isThreadRunning = true;
     auto callable = Callable(this, "_thread_func");
     thread->start(callable);
 }
@@ -134,9 +152,18 @@ void ZMQReceiver::_process(double delta) {
 void ZMQReceiver::_thread_func() {
     // UtilityFunctions::print("ZMQReceiver::_thread_func()");
 
-    UtilityFunctions::print("ZMQReceiver started on address: " + _in_zmq_addr + " with socket type: " + socket_type_to_string(_in_socket_type));
+    if (socket_type == 2 /* SUB */) {
+        UtilityFunctions::print("ZMQReceiver started (addr: " + addr
+            + ", type: " + socket_type_to_string(socket_type)
+            + ", mode: " + connection_mode_to_string(connection_mode)
+            + ", filter: '" + socket_filter + "')");
+    }else {
+        UtilityFunctions::print("ZMQReceiver started (addr: " + addr
+            + ", type: " + socket_type_to_string(socket_type)
+            + ", mode: " + connection_mode_to_string(connection_mode) + ")");
+    }
 
-    while (_isRunning) {
+    while (isThreadRunning) {
         zmq::message_t message;
         auto result = socket.recv(message, zmq::recv_flags::none);
 
@@ -144,33 +171,30 @@ void ZMQReceiver::_thread_func() {
             continue;
         }
 
-        // UtilityFunctions::print("ZMQReceiver::_thread_func() received message");
-        std::string _str = message.to_string();
-        String str = _str.c_str();
-        // UtilityFunctions::print("ZMQReceiver::_thread_func() received message: " + str);
+        mutex->lock();
 
-        PackedByteArray packet;
-        packet.resize(message.size());
-        memcpy(packet.ptrw(), message.data(), message.size());
-
-        _process_packet(packet, str);
+        if (receive_with_bytes) {
+            if (bytesMessageHandler.is_valid()) {
+                PackedByteArray bytes;
+                bytes.resize(message.size());
+                memcpy(bytes.ptrw(), message.data(), message.size());
+                bytesMessageHandler.call(bytes);
+            }
+        } else {
+            if (stringMessageHandler.is_valid()) {
+                std::string _str = message.to_string();
+                String str = _str.c_str();
+                stringMessageHandler.call(str);
+            }
+        }
+        mutex->unlock();
     }
-}
-
-void ZMQReceiver::_process_packet(PackedByteArray bytes, String str) {
-    // UtilityFunctions::print("ZMQReceiver::_process_packet()");
-
-    mutex->lock();
-    if (messageHandler.is_valid()) {
-        messageHandler.call(bytes, str);
-    }
-    mutex->unlock();
 }
 
 void ZMQReceiver::stop() {
     // UtilityFunctions::print("ZMQReceiver::stop()");
 
-    _isRunning = false;
+    isThreadRunning = false;
 
     thread->wait_to_finish();
 
@@ -178,10 +202,32 @@ void ZMQReceiver::stop() {
     context.close();
 }
 
-void ZMQReceiver::onMessage(Callable callback) {
-    // UtilityFunctions::print("ZMQReceiver::onMessage()");
+void ZMQReceiver::onMessageString(Callable callback) {
+    // UtilityFunctions::print("ZMQReceiver::onMessageString()");
 
     mutex->lock();
-    messageHandler = callback;
+    receive_with_bytes = false;
+    stringMessageHandler = callback;
     mutex->unlock();
+}
+
+void ZMQReceiver::onMessageBytes(Callable callback) {
+    // UtilityFunctions::print("ZMQReceiver::onMessageBytes()");
+
+    mutex->lock();
+    receive_with_bytes = true;
+    bytesMessageHandler = callback;
+    mutex->unlock();
+}
+
+void ZMQReceiver::sendString(String message) {
+    PackedByteArray bytes = message.to_utf8_buffer();
+    sendBytes(bytes);
+}
+
+void ZMQReceiver::sendBytes(PackedByteArray message) {
+    // zmq::message_t msg(message.size());
+    // memcpy(msg.data(), message.ptr(), message.size());
+    zmq::message_t msg(message.ptr(), message.size());
+    socket.send(msg, zmq::send_flags::none);
 }

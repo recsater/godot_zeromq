@@ -14,3 +14,8 @@ enum SocketType {
     XSUB = 10,
     STREAM = 11
 }
+
+enum ConnectionMode {
+    BIND = 1,
+    CONNECT = 2
+}
