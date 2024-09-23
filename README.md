@@ -95,6 +95,10 @@ see [`project/`](project) directory
 
 (This process is needed only if you build this plugin by your own)
 
+- NOTE: before scons, you need to install **cppzmq** and **ZeroMQ**. 
+  - on Ubuntu/Mac: `brew install cppzmq` (installed dependency will auto detected from `/home/linuxbrew/.linuxbrew/`)
+  - on Windows: `./vcpkg install cppzmq` (installed dependency will auto detected from `C:/vcpkg/`)
+
 ```bash
 $ git submodule update --init --recursive --recommend-shallow --depth 1
 $ scons
