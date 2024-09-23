@@ -15,8 +15,8 @@ func _ready():
 
 	# Message input Handler 
 	# osc.onMessage("/test", func(msg:OSCMessage):
-	zmq_receiver.onMessage(func(args: Array):
-		print("[ZMQ] Args: ", args)
+	zmq_receiver.onMessage(func(bytes: PackedByteArray, str: String):
+		print("[ZMQ] Str: ", str)
 	)
 
 	# Message output

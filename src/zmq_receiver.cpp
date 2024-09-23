@@ -89,7 +89,30 @@ void ZMQReceiver::init(String inAddr, int socketType) {
     socket = zmq::socket_t(context, socketType);
 
     std::string addr = inAddr.utf8().get_data();
-    socket.bind(addr);
+
+    // choose bind or connect
+    // With Bind, you allow peers to connect to you, thus you don’t know how many peers there will be in the future and you cannot create the queues in advance. Instead, queues are created as individual peers connect to the bound socket.
+    // With Connect, ZeroMQ knows that there’s going to be at least a single peer and thus it can create a single queue immediately. This applies to all socket types except ROUTER, where queues are only created after the peer we connect to has acknowledge our connection.
+    
+    //     ZMQ bind versus connect
+    // In brief, you should use bind for:
+
+    // stable things; use connect for volatile things
+    // when there is on; use connect when the number is unknown
+    // when listening; use connect when broadcasting
+    // long-lived process should bind; short-lived should connect
+    // bind for incoming; connect for outgoing
+    // bound sockets start muted; connected sockets start ready [except router sockets]
+    
+    if (socketType == 2 /* SUB */
+        || socketType == 4 /* REP */
+        || socketType == 6 /* ROUTER */
+        || socketType == 8 /* PUSH */
+        || socketType == 10 /* XSUB */) {
+        socket.connect(addr);
+    } else {
+        socket.bind(addr);
+    }
 
     // UtilityFunctions::print("ZMQReceiver::init socket connected to: " + inAddr);
 
@@ -121,27 +144,25 @@ void ZMQReceiver::_thread_func() {
             continue;
         }
 
-        UtilityFunctions::print("ZMQReceiver::_thread_func() received message");
+        // UtilityFunctions::print("ZMQReceiver::_thread_func() received message");
+        std::string _str = message.to_string();
+        String str = _str.c_str();
+        // UtilityFunctions::print("ZMQReceiver::_thread_func() received message: " + str);
 
-        // PackedByteArray packet;
-        // packet.resize(message.size());
-        // memcpy(packet.ptrw(), message.data(), message.size());
+        PackedByteArray packet;
+        packet.resize(message.size());
+        memcpy(packet.ptrw(), message.data(), message.size());
 
-        // _process_packet(packet);
+        _process_packet(packet, str);
     }
 }
 
-void ZMQReceiver::_process_packet(PackedByteArray packet) {
+void ZMQReceiver::_process_packet(PackedByteArray bytes, String str) {
     // UtilityFunctions::print("ZMQReceiver::_process_packet()");
 
-    UtilityFunctions::print("ZMQReceiver::_process_packet(), but not implemented");
-
     mutex->lock();
-    Array args;
-    // TODO: implement
-    // args.push_back(packet);
     if (messageHandler.is_valid()) {
-        messageHandler.call(args);
+        messageHandler.call(bytes, str);
     }
     mutex->unlock();
 }

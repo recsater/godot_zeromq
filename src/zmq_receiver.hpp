@@ -26,6 +26,7 @@ public:
         zmq::socket_t socket;
         String _in_zmq_addr;
         int _in_socket_type;
+        int _out_socket_type;
 
         bool _isRunning = true;
     
@@ -37,9 +38,10 @@ public:
         void _ready() override;
         void _process(double delta) override;
         void _thread_func();
-        void _process_packet(PackedByteArray packet);
+        void _process_packet(PackedByteArray bytes, String str);
     
         void stop();
+        void sendBack(Array arguments);
         void onMessage(Callable callback);
 };
     
