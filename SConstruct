@@ -53,6 +53,17 @@ if os.path.exists(vcpkg_path):
     if 'PKG_CONFIG_PATH' in os.environ:
         env['ENV']['PKG_CONFIG_PATH'] = f"{vcpkg_path}/installed/x64-windows/share/pkgconfig:{os.environ.get('PKG_CONFIG_PATH', '')}"
 
+vcpkg_linux_path = '~/vcpkg'
+
+if os.path.exists(vcpkg_linux_path):
+    print(f"VCPKG detected at {vcpkg_linux_path}")
+    env.Append(CPPPATH=[f'{vcpkg_linux_path}/installed/x64-linux/include'])
+    env.Append(LIBPATH=[f'{vcpkg_linux_path}/installed/x64-linux/lib'])
+
+    # VCPKGのpkg-configパスを環境変数に追加
+    if 'PKG_CONFIG_PATH' in os.environ:
+        env['ENV']['PKG_CONFIG_PATH'] = f"{vcpkg_linux_path}/installed/x64-linux/share/pkgconfig:{os.environ.get('PKG_CONFIG_PATH', '')}"
+
 env.Append(LIBS=['libzmq'])
 
 env.Append(CXXFLAGS=[f'-I{inc}' for inc in env['CPPPATH']])
