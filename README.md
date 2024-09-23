@@ -37,7 +37,8 @@ func _exit_tree():
 - `sendBytes(message: PackedByteArray) -> void`
 - `stop() -> void`
 
-NOTE: socket_filter is only used when socket_type is SUB
+NOTE 1: socket_filter is only used when socket_type is SUB
+NOTE 2: onMessageString and onMessageBytes are exclusive, you can only use one of them
 
 ### ZMQSender
 
@@ -49,7 +50,8 @@ NOTE: socket_filter is only used when socket_type is SUB
 - `beginReceiveRequest() -> void` (only enabled to use when auto_receive_on_sender is false)
 - `stop() -> void`
 
-NOTE: socket_filter is only used when socket_type is SUB
+NOTE 1: socket_filter is only used when socket_type is SUB
+NOTE 2: onMessageString and onMessageBytes are exclusive, you can only use one of them
 
 ## Installation
 
