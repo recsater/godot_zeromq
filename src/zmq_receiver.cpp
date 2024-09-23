@@ -9,7 +9,7 @@ void ZMQReceiver::_bind_methods() {
     ClassDB::bind_static_method("ZMQReceiver", D_METHOD("new_from", "inAddr", "socketType"), &ZMQReceiver::new_from);
     ClassDB::bind_method(D_METHOD("init", "inAddr", "socketType"), &ZMQReceiver::init);
     ClassDB::bind_method(D_METHOD("stop"), &ZMQReceiver::stop);
-    ClassDB::bind_method(D_METHOD("onMessage", "address", "callback"), &ZMQReceiver::onMessage);
+    ClassDB::bind_method(D_METHOD("onMessage", "callback"), &ZMQReceiver::onMessage);
 }
 
 ZMQReceiver::ZMQReceiver()
@@ -23,7 +23,7 @@ ZMQReceiver::~ZMQReceiver()
 }
 
 ZMQReceiver* ZMQReceiver::new_from(String inAddr, int socketType) {
-    // UtilityFunctions::print("ZMQReceiver::new_from");
+    UtilityFunctions::print("ZMQReceiver::new_from");
 
     ZMQReceiver* zmq_receiver = memnew(ZMQReceiver);
     zmq_receiver->init(inAddr, socketType);
@@ -33,12 +33,16 @@ ZMQReceiver* ZMQReceiver::new_from(String inAddr, int socketType) {
 
 void ZMQReceiver::init(String inAddr, int socketType) {
     // UtilityFunctions::print("ZMQReceiver::init");
-    // UtilityFunctions::print("ZMQReceiver::init inAddr: " + inAddr + " socketType: " + String::num_int64(socketType));
+    UtilityFunctions::print("ZMQReceiver::init inAddr: " + inAddr + " socketType: " + String::num_int64(socketType));
     _in_zmq_addr = inAddr;
 
     context = zmq::context_t(1);
-    socket = zmq::socket_t(context, static_cast<int>(socketType));
-    socket.connect(inAddr.utf8().get_data());
+    socket = zmq::socket_t(context, socketType);
+
+    std::string addr = inAddr.utf8().get_data();
+    socket.connect(addr);
+
+    UtilityFunctions::print("ZMQReceiver::init socket connected to: " + inAddr);
 
     thread = memnew(Thread);
     mutex = memnew(Mutex);
@@ -55,7 +59,7 @@ void ZMQReceiver::_process(double delta) {
 }
 
 void ZMQReceiver::_thread_func() {
-    // UtilityFunctions::print("ZMQReceiver::_thread_func()");
+    UtilityFunctions::print("ZMQReceiver::_thread_func()");
 
     while (_isRunning) {
         zmq::message_t message;

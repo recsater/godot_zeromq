@@ -1,7 +1,7 @@
 class_name ZeroMQReceiver
 extends Node
 
-@export var zmq_in_address:String = "tcp://*:5555"
+@export var zmq_in_address:String = "tcp://localhost:5555"
 @export var zmq_out_address:String = "tcp://localhost:5556"
 @export var zmq_in_socket_type:ZMQ.SocketType = ZMQ.SocketType.REP
 @export var zmq_out_socket_type:ZMQ.SocketType = ZMQ.SocketType.REQ
@@ -9,6 +9,7 @@ extends Node
 
 # Called when the node enters the scene tree for the first time.
 func _ready():
+	print("ready!!")
 	# osc.init(osc_in_port, osc_out_port, host_ip) # inPort, outPort, outIP
 
 	add_child(zmq_receiver)
@@ -17,16 +18,6 @@ func _ready():
 	# osc.onMessage("/test", func(msg:OSCMessage):
 	zmq_receiver.onMessage(func(args: Array):
 		print("[ZMQ] Args: ", args)
-
-		# match msg.getValues() :
-		# 	[var x, var y] when x is float and y is float:
-		# 		# print("X: ", x, ", Y: ", y)
-		# 		if mover:
-		# 			mover.osc_move_message_received.emit(x, y)
-		# 	[var x, var y, var s] when x is float and y is float:
-		# 		# print("X: ", x, ", Y: ", y)
-		# 		if mover:
-		# 			mover.osc_move_message_received.emit(x, y)
 	)
 
 	# Message output

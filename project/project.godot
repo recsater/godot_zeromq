@@ -13,4 +13,3 @@ config_version=5
 config/name="godot_zeromq_demo_project"
 run/main_scene="res://sample_scene.tscn"
 config/features=PackedStringArray("4.3", "Forward Plus")
-config/icon="res://icon.svg"

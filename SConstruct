@@ -27,7 +27,9 @@ if os.path.exists(homebrew_path):
 # else:
 #     print("Homebrew not detected, using default paths")
     # env.Append(CPPPATH=['/usr/local/include'])
-env.Append(LIBPATH=['/usr/local/lib'])
+
+if os.path.exists('/usr/local/lib'):
+    env.Append(LIBPATH=['/usr/local/lib'])
 
 env.Append(LIBS=['libzmq'])
 
