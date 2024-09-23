@@ -158,7 +158,7 @@ func _process(delta):
 
 ## Usage
 
-```gd
+```gdscript
 @onready var zmq_receiver = ZMQReceiver::new_from("tcp://localhost:5555", ZMQ.SocketType.PULL, ZMQ.ConnectionMode.BIND, "")
 @onready var zmq_sender = ZMQSender::new_from("tcp://localhost:5555", ZMQ.SocketType.PUSH, ZMQ.ConnectionMode.CONNECT, "", false)
 
