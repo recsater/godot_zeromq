@@ -31,6 +31,17 @@ if os.path.exists(homebrew_path):
 if os.path.exists('/usr/local/lib'):
     env.Append(LIBPATH=['/usr/local/lib'])
 
+# VCPKGのパスを確認
+vcpkg_path = 'C:/vcpkg'
+if os.path.exists(vcpkg_path):
+    print(f"VCPKG detected at {vcpkg_path}")
+    env.Append(CPPPATH=[f'{vcpkg_path}/installed/x64-windows/include'])
+    env.Append(LIBPATH=[f'{vcpkg_path}/installed/x64-windows/lib'])
+
+    # VCPKGのpkg-configパスを環境変数に追加
+    if 'PKG_CONFIG_PATH' in os.environ:
+        env['ENV']['PKG_CONFIG_PATH'] = f"{vcpkg_path}/installed/x64-windows/share/pkgconfig:{os.environ.get('PKG_CONFIG_PATH', '')}"
+
 env.Append(LIBS=['libzmq'])
 
 env.Append(CXXFLAGS=[f'-I{inc}' for inc in env['CPPPATH']])
