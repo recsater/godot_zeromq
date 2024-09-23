@@ -177,20 +177,24 @@ func _ready():
 
 ### ZMQReceiver
 
-- `new_from(address: String, socket_type: int, connection_mode: int, identity: String) -> ZMQReceiver`
+- `new_from(address: String, socket_type: int, connection_mode: int, socket_filter: String) -> ZMQReceiver`
 - `onMessageString(callback: Callable[[String], void])`
 - `onMessageBytes(callback: Callable[[PackedByteArray], void])`
 - `sendString(message: String) -> void`
 - `sendBytes(message: PackedByteArray) -> void`
 
+NOTE: socket_filter is only used when socket_type is SUB
+
 ### ZMQSender
 
-- `new_from(address: String, socket_type: int, connection_mode: int, identity: String, auto_receive_on_sender: bool) -> ZMQSender`
+- `new_from(address: String, socket_type: int, connection_mode: int, socket_filter: String, auto_receive_on_sender: bool) -> ZMQSender`
 - `onMessageString(callback: Callable[[String], void])`
 - `onMessageBytes(callback: Callable[[PackedByteArray], void])`
 - `sendString(message: String) -> void`
 - `sendBytes(message: PackedByteArray) -> void`
 - `beginReceiveRequest() -> void` (only enabled to use when auto_receive_on_sender is false)
+
+NOTE: socket_filter is only used when socket_type is SUB
 
 ## Build and Run
 
