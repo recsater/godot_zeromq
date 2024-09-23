@@ -96,7 +96,7 @@ see [`project/`](project) directory
 (This process is needed only if you build this plugin by your own)
 
 - NOTE: before scons, you need to install **cppzmq** and **ZeroMQ**. 
-  - on Ubuntu/Mac: `brew install cppzmq` (installed dependency will auto detected from `/home/linuxbrew/.linuxbrew/`)
+  - on Ubuntu/Mac: `brew install cppzmq` (installed dependency will auto detected from `/home/linuxbrew/.linuxbrew/`, and you can also use vcpkg if you want, path should be `~/vcpkg/`)
   - on Windows: `./vcpkg install cppzmq` (installed dependency will auto detected from `C:/vcpkg/`)
 
 ```bash
