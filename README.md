@@ -33,6 +33,8 @@ func _exit_tree():
     remove_child(zmq_sender)
 ```
 
+more example, see [zeromq_receiver.gd](https://github.com/funatsufumiya/godot_zeromq/blob/main/project/zeromq_receiver.gd)
+
 ### ZMQReceiver
 
 - `new_from(address: String, socket_type: int, connection_mode: int, socket_filter: String) -> ZMQReceiver`
