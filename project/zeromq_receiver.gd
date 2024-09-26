@@ -58,20 +58,20 @@ func get_zmq_out_socket_type():
 func get_zmq_in_connection_mode():
 	match zmq_test_mode:
 		TestMode.PUSH_PULL:
-			return ZMQ.ConnectionMode.BIND
+			return ZMQ.ConnectionMode.CONNECT
 		TestMode.PUB_SUB:
 			return ZMQ.ConnectionMode.CONNECT
 		TestMode.REQ_REP:
-			return ZMQ.ConnectionMode.BIND
+			return ZMQ.ConnectionMode.CONNECT
 
 func get_zmq_out_connection_mode():
 	match zmq_test_mode:
 		TestMode.PUSH_PULL:
-			return ZMQ.ConnectionMode.CONNECT
+			return ZMQ.ConnectionMode.BIND
 		TestMode.PUB_SUB:
 			return ZMQ.ConnectionMode.BIND
 		TestMode.REQ_REP:
-			return ZMQ.ConnectionMode.CONNECT
+			return ZMQ.ConnectionMode.BIND
 
 func get_zmq_receive_on_sender():
 	match zmq_test_mode:
