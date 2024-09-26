@@ -9,8 +9,8 @@ use [godot_zeromq_bin](https://github.com/funatsufumiya/godot_zeromq_bin). see [
 ## Usage
 
 ```gdscript
-@onready var zmq_receiver = ZMQReceiver::new_from("tcp://localhost:5555", ZMQ.SocketType.PULL, ZMQ.ConnectionMode.BIND, "")
-@onready var zmq_sender = ZMQSender::new_from("tcp://localhost:5555", ZMQ.SocketType.PUSH, ZMQ.ConnectionMode.CONNECT, "", false)
+@onready var zmq_receiver = ZMQReceiver.new_from("tcp://localhost:5555", ZMQ.SocketType.PULL, ZMQ.ConnectionMode.CONNECT, "")
+@onready var zmq_sender = ZMQSender.new_from("tcp://localhost:5555", ZMQ.SocketType.PUSH, ZMQ.ConnectionMode.BIND, "", false)
 
 func _ready():
     add_child(zmq_receiver)
