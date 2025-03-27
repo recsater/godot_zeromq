@@ -1,6 +1,6 @@
 # godot_zeromq
 
-ZeroMQ addon for Godot 4.2.2 - 4.3
+ZeroMQ addon for Godot 4.2.2 - 4.4
 
 ## Install
 
