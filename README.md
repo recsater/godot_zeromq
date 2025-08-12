@@ -106,3 +106,9 @@ $ scons target=template_release
 $ godot project/project.godot # (only first time)
 $ godot --path project/ # run demo
 ```
+
+## License
+
+- godot_zeromq: [MIT License](./LICENSE)
+- [cppzmq](https://github.com/zeromq/cppzmq): [MIT License](https://github.com/zeromq/cppzmq/blob/master/LICENSE)
+- [libzmq](https://github.com/zeromq/libzmq): [Mozilla Public License 2.0](https://github.com/zeromq/libzmq/blob/master/LICENSE) (please also check [https://zeromq.org/license/](https://zeromq.org/license/))
