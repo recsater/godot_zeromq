@@ -159,60 +159,54 @@ void ZMQSender::_process(double delta) {
 }
 
 void ZMQSender::_thread_func() {
-    // UtilityFunctions::print("ZMQSender::_thread_func()");
-
     while (isThreadRunning) {
         if (need_to_start_receiving) {
             need_to_start_receiving = false;
             
             Array message_parts;
+            bool received_any_part = false;
             
             while(true) {
                 zmq::message_t message_part;
                 auto result = socket.recv(message_part, zmq::recv_flags::none);
 
                 if (!result) {
-                    if (message_parts.is_empty()) {
-                        goto next_message_loop_sender;
-                    }
-                    UtilityFunctions::push_warning("Incomplete multipart message received on sender.");
                     break;
                 }
+                
+                received_any_part = true;
 
                 if (receive_with_bytes) {
-                    if (bytesMessageHandler.is_valid()) {
-                        PackedByteArray bytes;
-                        bytes.resize(message_part.size());
-                        memcpy(bytes.ptrw(), message_part.data(), message_part.size());
-                        message_parts.push_back(bytes);
-                    }
+                    PackedByteArray bytes;
+                    bytes.resize(message_part.size());
+                    memcpy(bytes.ptrw(), message_part.data(), message_part.size());
+                    message_parts.push_back(bytes);
                 } else {
-                    if (stringMessageHandler.is_valid()) {
-                        std::string _str = message_part.to_string();
-                        String str = _str.c_str();
-                        message_parts.push_back(str);
-                    }
+                    std::string _str = message_part.to_string();
+                    String str = _str.c_str();
+                    message_parts.push_back(str);
                 }
 
                 if (!message_part.more()) {
                     break;
                 }
             }
-
-            if (!message_parts.is_empty()) {
-                mutex->lock();
-                if (receive_with_bytes) {
-                    if (bytesMessageHandler.is_valid()) {
-                        bytesMessageHandler.call(message_parts);
-                    }
-                } else {
-                    if (stringMessageHandler.is_valid()) {
-                        stringMessageHandler.call(message_parts);
-                    }
-                }
-                mutex->unlock();
+            
+            if (!received_any_part) {
+                continue;
             }
-        next_message_loop_sender:;
+
+            mutex->lock();
+            if (receive_with_bytes) {
+                if (bytesMessageHandler.is_valid()) {
+                    bytesMessageHandler.call(message_parts);
+                }
+            } else {
+                if (stringMessageHandler.is_valid()) {
+                    stringMessageHandler.call(message_parts);
+                }
+            }
+            mutex->unlock();
         }
     }
 }
