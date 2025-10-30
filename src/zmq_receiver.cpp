@@ -164,30 +164,51 @@ void ZMQReceiver::_thread_func() {
     }
 
     while (isThreadRunning) {
-        zmq::message_t message;
-        auto result = socket.recv(message, zmq::recv_flags::none);
+        Array message_parts;
 
-        if (!result) {
-            continue;
-        }
+        while (true) {
+            zmq::message_t message_part;
+            auto result = socket.recv(message_part, zmq::recv_flags::none);
 
-        mutex->lock();
+            if (!result) {
+                if (message_parts.is_empty()) {
+                    goto next_message_loop;
+                }
+                UtilityFunctions::push_warning("Incomplete multipart message received.");
+                break; // Break the inner loop and process what was received so far
+            }
 
-        if (receive_with_bytes) {
-            if (bytesMessageHandler.is_valid()) {
+            if (receive_with_bytes) {
                 PackedByteArray bytes;
-                bytes.resize(message.size());
-                memcpy(bytes.ptrw(), message.data(), message.size());
-                bytesMessageHandler.call(bytes);
-            }
-        } else {
-            if (stringMessageHandler.is_valid()) {
-                std::string _str = message.to_string();
+                bytes.resize(message_part.size());
+                memcpy(bytes.ptrw(), message_part.data(), message_part.size());
+                message_parts.push_back(bytes);
+            } else {
+                std::string _str = message_part.to_string();
                 String str = _str.c_str();
-                stringMessageHandler.call(str);
+                message_parts.push_back(str);
+            }
+
+            if (!message_part.more()) {
+                break;
             }
         }
-        mutex->unlock();
+
+        if (!message_parts.is_empty()) {
+            mutex->lock();
+            if (receive_with_bytes) {
+                if (bytesMessageHandler.is_valid()) {
+                    bytesMessageHandler.call(message_parts);
+                }
+            } else {
+                if (stringMessageHandler.is_valid()) {
+                    stringMessageHandler.call(message_parts);
+                }
+            }
+            mutex->unlock();
+        }
+
+    next_message_loop:;
     }
 }
 
