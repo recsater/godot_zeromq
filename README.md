@@ -1,6 +1,6 @@
 # godot_zeromq
 
-ZeroMQ addon for Godot 4.2.2 - 4.4
+ZeroMQ addon for Godot 4.2.2 ~
 
 ## Install
 
@@ -38,8 +38,8 @@ more example, see [GDScript of demo project](https://github.com/funatsufumiya/go
 ### ZMQReceiver
 
 - `new_from(address: String, socket_type: int, connection_mode: int, socket_filter: String) -> ZMQReceiver`
-- `onMessageString(callback: Callable[[String], void])`
-- `onMessageBytes(callback: Callable[[PackedByteArray], void])`
+- `onMessageString(callback: Callable[[Array[String]], void])`
+- `onMessageBytes(callback: Callable[[Array[PackedByteArray]], void])`
 - `sendString(message: String) -> void`
 - `sendBytes(message: PackedByteArray) -> void`
 - `stop() -> void`
@@ -47,8 +47,8 @@ more example, see [GDScript of demo project](https://github.com/funatsufumiya/go
 ### ZMQSender
 
 - `new_from(address: String, socket_type: int, connection_mode: int, socket_filter: String, auto_receive_on_sender: bool) -> ZMQSender`
-- `onMessageString(callback: Callable[[String], void])` (***ONLY enabled to use when auto_receive_on_sender is true, or `beginReceiveRequest()` called***)
-- `onMessageBytes(callback: Callable[[PackedByteArray], void])` (***ONLY enabled to use when auto_receive_on_sender is true, or `beginReceiveRequest()` called***)
+- `onMessageString(callback: Callable[[Array[String]], void])` (***ONLY enabled to use when auto_receive_on_sender is true, or `beginReceiveRequest()` called***)
+- `onMessageBytes(callback: Callable[[Array[PackedByteArray]], void])` (***ONLY enabled to use when auto_receive_on_sender is true, or `beginReceiveRequest()` called***)
 - `sendString(message: String) -> void`
 - `sendBytes(message: PackedByteArray) -> void`
 - `beginReceiveRequest() -> void` (***ONLY enabled to use when auto_receive_on_sender is false***)
@@ -58,6 +58,7 @@ more example, see [GDScript of demo project](https://github.com/funatsufumiya/go
 
 - `socket_filter` is ONLY used when `socket_type` is `SUB`
 - `onMessageString` and `onMessageBytes` are exclusive, you can ONLY use one of them
+- **Callbacks (`onMessageString`, `onMessageBytes`) now receive an `Array` of message parts to support multipart messages. For single-part messages, this will be an array with one element.**
 
 ### ZMQ
 
@@ -112,3 +113,4 @@ $ godot --path project/ # run demo
 - godot_zeromq: [MIT License](./LICENSE)
 - [cppzmq](https://github.com/zeromq/cppzmq): [MIT License](https://github.com/zeromq/cppzmq/blob/master/LICENSE)
 - [libzmq](https://github.com/zeromq/libzmq): [Mozilla Public License 2.0](https://github.com/zeromq/libzmq/blob/master/LICENSE) (please also check [https://zeromq.org/license/](https://zeromq.org/license/))
+
