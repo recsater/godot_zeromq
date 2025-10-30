@@ -150,14 +150,12 @@ void ZMQReceiver::_process(double delta) {
 }
 
 void ZMQReceiver::_thread_func() {
-    // UtilityFunctions::print("ZMQReceiver::_thread_func()");
-
     if (socket_type == 2 /* SUB */) {
         UtilityFunctions::print("ZMQReceiver started (addr: " + addr
             + ", type: " + socket_type_to_string(socket_type)
             + ", mode: " + connection_mode_to_string(connection_mode)
             + ", filter: '" + socket_filter + "')");
-    }else {
+    } else {
         UtilityFunctions::print("ZMQReceiver started (addr: " + addr
             + ", type: " + socket_type_to_string(socket_type)
             + ", mode: " + connection_mode_to_string(connection_mode) + ")");
@@ -165,18 +163,17 @@ void ZMQReceiver::_thread_func() {
 
     while (isThreadRunning) {
         Array message_parts;
+        bool received_any_part = false;
 
         while (true) {
             zmq::message_t message_part;
             auto result = socket.recv(message_part, zmq::recv_flags::none);
 
             if (!result) {
-                if (message_parts.is_empty()) {
-                    goto next_message_loop;
-                }
-                UtilityFunctions::push_warning("Incomplete multipart message received.");
-                break; // Break the inner loop and process what was received so far
+                break;
             }
+
+            received_any_part = true;
 
             if (receive_with_bytes) {
                 PackedByteArray bytes;
@@ -194,21 +191,21 @@ void ZMQReceiver::_thread_func() {
             }
         }
 
-        if (!message_parts.is_empty()) {
-            mutex->lock();
-            if (receive_with_bytes) {
-                if (bytesMessageHandler.is_valid()) {
-                    bytesMessageHandler.call(message_parts);
-                }
-            } else {
-                if (stringMessageHandler.is_valid()) {
-                    stringMessageHandler.call(message_parts);
-                }
-            }
-            mutex->unlock();
+        if (!received_any_part) {
+            continue;
         }
 
-    next_message_loop:;
+        mutex->lock();
+        if (receive_with_bytes) {
+            if (bytesMessageHandler.is_valid()) {
+                bytesMessageHandler.call(message_parts);
+            }
+        } else {
+            if (stringMessageHandler.is_valid()) {
+                stringMessageHandler.call(message_parts);
+            }
+        }
+        mutex->unlock();
     }
 }
 
