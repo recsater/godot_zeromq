@@ -6,10 +6,10 @@
 using namespace godot;
 
 void ZMQSender::_bind_methods() {
-    ClassDB::bind_static_method("ZMQSender", D_METHOD("new_from", "address", "socketType", "connectionMode", "socketFilter"), &ZMQSender::new_from);
+    ClassDB::bind_static_method("ZMQSender", D_METHOD("new_from", "address", "socketType", "connectionMode", "socketFilter", "auto_receive_on_sender"), &ZMQSender::new_from);
     ClassDB::bind_static_method("ZMQSender", D_METHOD("socket_type_to_string", "socketType"), &ZMQSender::socket_type_to_string);
     ClassDB::bind_static_method("ZMQSender", D_METHOD("connection_mode_to_string", "connectionMode"), &ZMQSender::connection_mode_to_string);
-    ClassDB::bind_method(D_METHOD("init", "address", "socketType", "connectionMode", "socketFilter"), &ZMQSender::init);
+    ClassDB::bind_method(D_METHOD("init", "address", "socketType", "connectionMode", "socketFilter", "auto_receive_on_sender"), &ZMQSender::init);
     ClassDB::bind_method(D_METHOD("stop"), &ZMQSender::stop);
     ClassDB::bind_method(D_METHOD("onMessageString", "callback"), &ZMQSender::onMessageString);
     ClassDB::bind_method(D_METHOD("onMessageBytes", "callback"), &ZMQSender::onMessageBytes);
@@ -99,10 +99,10 @@ ZMQSender::~ZMQSender()
 ZMQSender* ZMQSender::new_from(String address, int socketType, int connectionMode, String socketFilter, bool autoStartReceiveThreadAfterSend) {
     // UtilityFunctions::print("ZMQSender::new_from");
 
-    ZMQSender* zmq_receiver = memnew(ZMQSender);
-    zmq_receiver->init(address, socketType, connectionMode, socketFilter, autoStartReceiveThreadAfterSend);
+    ZMQSender* zmq_sender = memnew(ZMQSender);
+    zmq_sender->init(address, socketType, connectionMode, socketFilter, autoStartReceiveThreadAfterSend);
 
-    return zmq_receiver;
+    return zmq_sender;
 }
 
 void ZMQSender::init(String address, int socketType, int connectionMode, String socketFilter, bool autoStartReceiveThreadAfterSend) {
@@ -148,10 +148,6 @@ void ZMQSender::init(String address, int socketType, int connectionMode, String 
 
     thread = memnew(Thread);
     mutex = memnew(Mutex);
-
-    // isThreadRunning = true;
-    // auto callable = Callable(this, "_thread_func");
-    // thread->start(callable);
 }
 
 void ZMQSender::_ready() {
@@ -168,31 +164,55 @@ void ZMQSender::_thread_func() {
     while (isThreadRunning) {
         if (need_to_start_receiving) {
             need_to_start_receiving = false;
+            
+            Array message_parts;
+            
+            while(true) {
+                zmq::message_t message_part;
+                auto result = socket.recv(message_part, zmq::recv_flags::none);
 
-            zmq::message_t message;
-            auto result = socket.recv(message, zmq::recv_flags::none);
+                if (!result) {
+                    if (message_parts.is_empty()) {
+                        goto next_message_loop_sender;
+                    }
+                    UtilityFunctions::push_warning("Incomplete multipart message received on sender.");
+                    break;
+                }
 
-            if (!result) {
-                continue;
+                if (receive_with_bytes) {
+                    if (bytesMessageHandler.is_valid()) {
+                        PackedByteArray bytes;
+                        bytes.resize(message_part.size());
+                        memcpy(bytes.ptrw(), message_part.data(), message_part.size());
+                        message_parts.push_back(bytes);
+                    }
+                } else {
+                    if (stringMessageHandler.is_valid()) {
+                        std::string _str = message_part.to_string();
+                        String str = _str.c_str();
+                        message_parts.push_back(str);
+                    }
+                }
+
+                if (!message_part.more()) {
+                    break;
+                }
             }
 
-            mutex->lock();
-
-            if (receive_with_bytes) {
-                if (bytesMessageHandler.is_valid()) {
-                    PackedByteArray bytes;
-                    bytes.resize(message.size());
-                    memcpy(bytes.ptrw(), message.data(), message.size());
-                    bytesMessageHandler.call(bytes);
+            if (!message_parts.is_empty()) {
+                mutex->lock();
+                if (receive_with_bytes) {
+                    if (bytesMessageHandler.is_valid()) {
+                        bytesMessageHandler.call(message_parts);
+                    }
+                } else {
+                    if (stringMessageHandler.is_valid()) {
+                        stringMessageHandler.call(message_parts);
+                    }
                 }
-            } else {
-                if (stringMessageHandler.is_valid()) {
-                    std::string _str = message.to_string();
-                    String str = _str.c_str();
-                    stringMessageHandler.call(str);
-                }
+                mutex->unlock();
             }
-            mutex->unlock();
+        next_message_loop_sender:;
         }
     }
 }
@@ -249,7 +269,7 @@ void ZMQSender::beginReceiveThread() {
     }
 
     if (thread) {
-        thread->unreference();
+        memfree(thread); // Free previous thread instance
     }
 
     thread = memnew(Thread);
